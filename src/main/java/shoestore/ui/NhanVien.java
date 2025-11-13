@@ -1,12 +1,196 @@
 
 package com.mycompany.bangiaybongda.ui;
 
+import shoestore.controller.NhanVienController;
+import shoestore.until.MessageHelper;
+
+import javax.swing.JOptionPane;
+import javax.swing.ListSelectionModel;
+import javax.swing.table.DefaultTableModel;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+
 public class NhanVien extends javax.swing.JFrame {
-    
+
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(NhanVien.class.getName());
+    private final NhanVienController nhanVienController = new NhanVienController(); // Giải thích: controller gói toàn bộ nghiệp vụ/DAO.
+    private DefaultTableModel tableModel;
+    private List<shoestore.entity.NhanVien> displayedEmployees = new ArrayList<>();
+    private Integer selectedNhanVienId; // Giải thích: lưu Id nhân viên đang chọn để thao tác sửa/xóa.
 
     public NhanVien() {
         initComponents();
+        initCustomComponents();
+    }
+
+    private void initCustomComponents() {
+        setLocationRelativeTo(null); // Giải thích: hiển thị form tại giữa màn hình cho dễ thao tác.
+        configureTable();
+        loadAllEmployees();
+        btTimKiem.addActionListener(evt -> handleSearchEmployee());
+        txtTimKiem.addActionListener(evt -> handleSearchEmployee());
+        jButton2.addActionListener(evt -> handleUpdateEmployee());
+        jButton3.addActionListener(evt -> handleDeleteEmployee());
+    }
+
+    private void configureTable() {
+        tableModel = new DefaultTableModel(new Object[]{"Mã", "Họ tên", "Tuổi", "Giới tính", "Số điện thoại", "Email"}, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Giải thích: khóa không cho chỉnh sửa trực tiếp trên bảng để tránh sai sót.
+            }
+        };
+        jTable1.setModel(tableModel);
+        jTable1.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        jTable1.getSelectionModel().addListSelectionListener(evt -> {
+            if (!evt.getValueIsAdjusting()) {
+                showSelectedEmployee();
+            }
+        });
+    }
+
+    private void loadAllEmployees() {
+        try {
+            displayedEmployees = nhanVienController.getAllEmployees();
+            fillTable(displayedEmployees);
+            selectedNhanVienId = null;
+            jTable1.clearSelection();
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Không thể tải danh sách nhân viên", ex);
+            MessageHelper.showError(this, "Không thể kết nối CSDL GIAYTHETHAO để tải nhân viên");
+        }
+    }
+
+    private void fillTable(List<shoestore.entity.NhanVien> employees) {
+        tableModel.setRowCount(0);
+        for (shoestore.entity.NhanVien nv : employees) {
+            tableModel.addRow(new Object[]{
+                    nv.getIdNhanVien(),
+                    nv.getHoTen(),
+                    nv.getTuoi() == null ? "" : nv.getTuoi(),
+                    nv.isGioiTinh() ? "Nam" : "Nữ",
+                    nv.getSoDienThoai(),
+                    nv.getEmail() == null ? "" : nv.getEmail()
+            });
+        }
+    }
+
+    private void showSelectedEmployee() {
+        int selectedRow = jTable1.getSelectedRow();
+        if (selectedRow < 0 || selectedRow >= displayedEmployees.size()) {
+            selectedNhanVienId = null;
+            return;
+        }
+        shoestore.entity.NhanVien nhanVien = displayedEmployees.get(selectedRow);
+        selectedNhanVienId = nhanVien.getIdNhanVien();
+        txtTen.setText(nhanVien.getHoTen());
+        txtTuoi.setText(nhanVien.getTuoi() == null ? "" : String.valueOf(nhanVien.getTuoi()));
+        txtSDT.setText(nhanVien.getSoDienThoai());
+        txtEmail.setText(nhanVien.getEmail() == null ? "" : nhanVien.getEmail());
+        if (nhanVien.isGioiTinh()) {
+            rdoNam.setSelected(true);
+        } else {
+            rdoNu.setSelected(true);
+        }
+    }
+
+    private void clearForm() {
+        txtTen.setText("");
+        txtTuoi.setText("");
+        txtSDT.setText("");
+        txtEmail.setText("");
+        buttonGroup1.clearSelection();
+        txtTimKiem.setText("");
+        selectedNhanVienId = null;
+        jTable1.clearSelection();
+    }
+
+    private Boolean getSelectedGender() {
+        if (rdoNam.isSelected()) {
+            return Boolean.TRUE;
+        }
+        if (rdoNu.isSelected()) {
+            return Boolean.FALSE;
+        }
+        return null; // Giải thích: trả về null khi chưa chọn, controller sẽ báo lỗi giúp sinh viên biết cần tick ô.
+    }
+
+    private void handleAddEmployee() {
+        try {
+            nhanVienController.addEmployee(
+                    txtTen.getText(),
+                    txtTuoi.getText(),
+                    getSelectedGender(),
+                    txtSDT.getText(),
+                    txtEmail.getText());
+            MessageHelper.showInfo(this, "Thêm nhân viên thành công");
+            loadAllEmployees();
+            clearForm();
+        } catch (IllegalArgumentException ex) {
+            MessageHelper.showError(this, ex.getMessage());
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Lỗi thêm nhân viên", ex);
+            MessageHelper.showError(this, "Không thể thêm nhân viên vào CSDL GIAYTHETHAO");
+        }
+    }
+
+    private void handleUpdateEmployee() {
+        if (selectedNhanVienId == null) {
+            MessageHelper.showError(this, "Vui lòng chọn nhân viên cần sửa");
+            return;
+        }
+        try {
+            nhanVienController.updateEmployee(
+                    selectedNhanVienId,
+                    txtTen.getText(),
+                    txtTuoi.getText(),
+                    getSelectedGender(),
+                    txtSDT.getText(),
+                    txtEmail.getText());
+            MessageHelper.showInfo(this, "Cập nhật nhân viên thành công");
+            loadAllEmployees();
+        } catch (IllegalArgumentException ex) {
+            MessageHelper.showError(this, ex.getMessage());
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Lỗi cập nhật nhân viên", ex);
+            MessageHelper.showError(this, "Không thể cập nhật nhân viên trong CSDL GIAYTHETHAO");
+        }
+    }
+
+    private void handleDeleteEmployee() {
+        if (selectedNhanVienId == null) {
+            MessageHelper.showError(this, "Vui lòng chọn nhân viên cần xóa");
+            return;
+        }
+        int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn xóa nhân viên này?", "Xác nhận", JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+        try {
+            nhanVienController.deleteEmployee(selectedNhanVienId);
+            MessageHelper.showInfo(this, "Đã xóa nhân viên");
+            loadAllEmployees();
+            clearForm();
+        } catch (IllegalArgumentException ex) {
+            MessageHelper.showError(this, ex.getMessage());
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Lỗi xóa nhân viên", ex);
+            MessageHelper.showError(this, "Không thể xóa nhân viên khỏi CSDL GIAYTHETHAO");
+        }
+    }
+
+    private void handleSearchEmployee() {
+        try {
+            displayedEmployees = nhanVienController.searchEmployees(txtTimKiem.getText());
+            fillTable(displayedEmployees);
+            selectedNhanVienId = null;
+            jTable1.clearSelection();
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Lỗi tìm kiếm nhân viên", ex);
+            MessageHelper.showError(this, "Không thể tìm kiếm trên CSDL GIAYTHETHAO");
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -179,7 +363,7 @@ public class NhanVien extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
+        handleAddEmployee(); // Giải thích: gom toàn bộ nghiệp vụ thêm vào phương thức riêng để dễ bảo trì.
     }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
