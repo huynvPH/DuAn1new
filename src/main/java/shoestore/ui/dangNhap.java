@@ -1,22 +1,64 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
-package com.mycompany.bangiaybongda.ui;
+package shoestore.ui;
+
+import shoestore.controller.LoginController;
+import shoestore.until.MessageHelper;
+
+import javax.swing.GroupLayout;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.logging.Level;
 
 /**
- *
- * @author Asus
+ * Giao diện đăng nhập theo mẫu yêu cầu, kết nối trực tiếp với LoginController.
  */
 public class dangNhap extends javax.swing.JFrame {
-    
+
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(dangNhap.class.getName());
+    private final LoginController loginController = new LoginController(); // Giải thích: controller xử lý toàn bộ nghiệp vụ đăng nhập.
+    private char defaultEchoChar; // Giải thích: lưu lại ký tự hiển thị mật khẩu để bật/tắt chế độ xem.
 
     /**
      * Creates new form dangNhap
      */
     public dangNhap() {
         initComponents();
+        initCustomBehaviors(); // Giải thích: gom các cấu hình bổ sung giúp mã chính gọn gàng.
+    }
+
+    private void initCustomBehaviors() {
+        setLocationRelativeTo(null); // Giải thích: hiển thị frame chính giữa màn hình.
+        defaultEchoChar = txtPass.getEchoChar(); // Giải thích: lưu echo char mặc định của mật khẩu.
+        getRootPane().setDefaultButton(btDangNhap); // Giải thích: Enter sẽ kích hoạt nút Đăng nhập.
+        btDangNhap.addActionListener(evt -> handleLogin()); // Giải thích: bắt sự kiện click nút đăng nhập.
+        btnThoat.addActionListener(evt -> dispose()); // Giải thích: người dùng có thể đóng form nhanh chóng.
+        chkShowPassword.addActionListener(evt -> togglePasswordVisibility()); // Giải thích: bật/tắt hiển thị mật khẩu.
+    }
+
+    private void togglePasswordVisibility() {
+        if (chkShowPassword.isSelected()) {
+            txtPass.setEchoChar((char) 0); // Giải thích: đặt 0 để hiển thị rõ các ký tự.
+        } else {
+            txtPass.setEchoChar(defaultEchoChar); // Giải thích: khôi phục lại ký tự che mật khẩu.
+        }
+    }
+
+    private void handleLogin() {
+        String username = txtDangNhap.getText().trim(); // Giải thích: loại bỏ khoảng trắng dư thừa trước khi xử lý.
+        char[] password = txtPass.getPassword(); // Giải thích: lấy mật khẩu dạng mảng char để dễ xóa khỏi bộ nhớ.
+        try {
+            loginController.login(username, password); // Giải thích: ủy quyền xác thực cho controller.
+            MessageHelper.showInfo(this, "Đăng nhập thành công. Chúc bạn làm việc hiệu quả!");
+            dispose(); // Giải thích: đóng màn hình đăng nhập sau khi thành công, chuẩn bị mở màn hình chính.
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            MessageHelper.showError(this, ex.getMessage()); // Giải thích: hiển thị lỗi nghiệp vụ để người dùng biết cách xử lý.
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Lỗi truy vấn đăng nhập", ex); // Giải thích: ghi log phục vụ debug.
+            MessageHelper.showError(this, "Không thể kết nối CSDL GIAYTHETHAO. Vui lòng thử lại.");
+        } finally {
+            Arrays.fill(password, '\0'); // Giải thích: xóa mật khẩu khỏi bộ nhớ giúp tăng bảo mật.
+        }
     }
 
     /**
@@ -28,60 +70,166 @@ public class dangNhap extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
+        pnlWrapper = new javax.swing.JPanel();
+        pnlLeft = new javax.swing.JPanel();
+        lblBrand = new javax.swing.JLabel();
+        lblSlogan = new javax.swing.JLabel();
+        pnlRight = new javax.swing.JPanel();
+        lblTitle = new javax.swing.JLabel();
+        lblSubtitle = new javax.swing.JLabel();
+        separator = new javax.swing.JSeparator();
+        lblUsername = new javax.swing.JLabel();
         txtDangNhap = new javax.swing.JTextField();
-        btDangNhap = new javax.swing.JButton();
+        lblPassword = new javax.swing.JLabel();
         txtPass = new javax.swing.JPasswordField();
+        chkShowPassword = new javax.swing.JCheckBox();
+        btDangNhap = new javax.swing.JButton();
+        btnThoat = new javax.swing.JButton();
+        lblSupport = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Shoes Store - Đăng nhập");
+        setResizable(false);
 
-        jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        jLabel1.setText("Đăng nhập");
+        pnlWrapper.setBackground(new java.awt.Color(255, 255, 255));
+        pnlWrapper.setBorder(javax.swing.BorderFactory.createEmptyBorder(16, 16, 16, 16));
+        pnlWrapper.setLayout(new java.awt.BorderLayout(16, 0));
 
-        jLabel2.setText("Tên đăng nhập:");
+        pnlLeft.setBackground(new java.awt.Color(12, 52, 131));
+        pnlLeft.setPreferredSize(new java.awt.Dimension(260, 330));
 
-        jLabel3.setText("Mật khẩu:");
+        lblBrand.setFont(new java.awt.Font("Segoe UI", 1, 26)); // NOI18N
+        lblBrand.setForeground(new java.awt.Color(255, 255, 255));
+        lblBrand.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblBrand.setText("SHOES STORE");
 
+        lblSlogan.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        lblSlogan.setForeground(new java.awt.Color(233, 244, 255));
+        lblSlogan.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblSlogan.setText("Giao diện đăng nhập chuẩn hóa giúp thao tác nhanh hơn");
+        lblSlogan.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        lblSlogan.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        lblSlogan.setMaximumSize(new java.awt.Dimension(250, 60));
+
+        javax.swing.GroupLayout pnlLeftLayout = new javax.swing.GroupLayout(pnlLeft);
+        pnlLeft.setLayout(pnlLeftLayout);
+        pnlLeftLayout.setHorizontalGroup(
+            pnlLeftLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlLeftLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(pnlLeftLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lblBrand, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(lblSlogan, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+        pnlLeftLayout.setVerticalGroup(
+            pnlLeftLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlLeftLayout.createSequentialGroup()
+                .addGap(52, 52, 52)
+                .addComponent(lblBrand)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(lblSlogan, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(187, Short.MAX_VALUE))
+        );
+
+        pnlWrapper.add(pnlLeft, java.awt.BorderLayout.WEST);
+
+        pnlRight.setBackground(new java.awt.Color(255, 255, 255));
+        pnlRight.setBorder(javax.swing.BorderFactory.createEmptyBorder(12, 12, 12, 12));
+
+        lblTitle.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        lblTitle.setForeground(new java.awt.Color(33, 33, 33));
+        lblTitle.setText("Đăng nhập hệ thống");
+
+        lblSubtitle.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        lblSubtitle.setForeground(new java.awt.Color(102, 102, 102));
+        lblSubtitle.setText("Nhập tài khoản được cấp để tiếp tục quản lý cửa hàng");
+
+        separator.setForeground(new java.awt.Color(204, 204, 204));
+
+        lblUsername.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        lblUsername.setText("Tên đăng nhập");
+
+        txtDangNhap.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        txtDangNhap.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+            javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 204, 204)),
+            javax.swing.BorderFactory.createEmptyBorder(6, 8, 6, 8)));
+
+        lblPassword.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        lblPassword.setText("Mật khẩu");
+
+        txtPass.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        txtPass.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+            javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 204, 204)),
+            javax.swing.BorderFactory.createEmptyBorder(6, 8, 6, 8)));
+
+        chkShowPassword.setText("Hiển thị mật khẩu");
+
+        btDangNhap.setBackground(new java.awt.Color(12, 52, 131));
+        btDangNhap.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btDangNhap.setForeground(new java.awt.Color(255, 255, 255));
         btDangNhap.setText("Đăng nhập");
+        btDangNhap.setBorder(javax.swing.BorderFactory.createEmptyBorder(6, 12, 6, 12));
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(26, 26, 26)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(btDangNhap, javax.swing.GroupLayout.PREFERRED_SIZE, 109, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel2)
-                            .addComponent(jLabel3))
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jLabel1)
-                            .addComponent(txtDangNhap, javax.swing.GroupLayout.DEFAULT_SIZE, 189, Short.MAX_VALUE)
-                            .addComponent(txtPass))))
-                .addContainerGap(66, Short.MAX_VALUE))
+        btnThoat.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        btnThoat.setText("Thoát");
+        btnThoat.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 204, 204)));
+
+        lblSupport.setForeground(new java.awt.Color(102, 102, 102));
+        lblSupport.setText("Liên hệ quản trị viên nếu bạn quên thông tin đăng nhập");
+
+        GroupLayout pnlRightLayout = new GroupLayout(pnlRight);
+        pnlRight.setLayout(pnlRightLayout);
+        pnlRightLayout.setHorizontalGroup(
+            pnlRightLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addComponent(separator)
+            .addGroup(pnlRightLayout.createSequentialGroup()
+                .addGroup(pnlRightLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(lblTitle)
+                    .addComponent(lblSubtitle)
+                    .addComponent(lblUsername)
+                    .addComponent(txtDangNhap)
+                    .addComponent(lblPassword)
+                    .addComponent(txtPass)
+                    .addComponent(chkShowPassword)
+                    .addGroup(pnlRightLayout.createSequentialGroup()
+                        .addComponent(btDangNhap, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnThoat, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(lblSupport))
+                .addContainerGap())
         );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(30, 30, 30)
-                .addComponent(jLabel1)
-                .addGap(36, 36, 36)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jLabel2)
-                    .addComponent(txtDangNhap, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(26, 26, 26)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(txtPass, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(29, 29, 29)
-                .addComponent(btDangNhap)
-                .addContainerGap(47, Short.MAX_VALUE))
+        pnlRightLayout.setVerticalGroup(
+            pnlRightLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(pnlRightLayout.createSequentialGroup()
+                .addComponent(lblTitle)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lblSubtitle)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(separator, GroupLayout.PREFERRED_SIZE, 10, GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(lblUsername)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtDangNhap, GroupLayout.PREFERRED_SIZE, 38, GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(lblPassword)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtPass, GroupLayout.PREFERRED_SIZE, 38, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(chkShowPassword)
+                .addGap(18, 18, 18)
+                .addGroup(pnlRightLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(btDangNhap, GroupLayout.PREFERRED_SIZE, 40, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnThoat, GroupLayout.PREFERRED_SIZE, 40, GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(lblSupport)
+                .addGap(0, 26, Short.MAX_VALUE))
         );
+
+        pnlWrapper.add(pnlRight, java.awt.BorderLayout.CENTER);
+
+        getContentPane().add(pnlWrapper, java.awt.BorderLayout.CENTER);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -93,30 +241,40 @@ public class dangNhap extends javax.swing.JFrame {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
          */
         try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    UIManager.setLookAndFeel(info.getClassName());
                     break;
                 }
             }
-        } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
-            logger.log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
+            logger.log(Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
         /* Create and display the form */
-        
+
         java.awt.EventQueue.invokeLater(() -> new dangNhap().setVisible(true));
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btDangNhap;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
+    private javax.swing.JButton btnThoat;
+    private javax.swing.JCheckBox chkShowPassword;
+    private javax.swing.JLabel lblBrand;
+    private javax.swing.JLabel lblPassword;
+    private javax.swing.JLabel lblSlogan;
+    private javax.swing.JLabel lblSubtitle;
+    private javax.swing.JLabel lblSupport;
+    private javax.swing.JLabel lblTitle;
+    private javax.swing.JLabel lblUsername;
+    private javax.swing.JPanel pnlLeft;
+    private javax.swing.JPanel pnlRight;
+    private javax.swing.JPanel pnlWrapper;
+    private javax.swing.JSeparator separator;
     private javax.swing.JTextField txtDangNhap;
     private javax.swing.JPasswordField txtPass;
     // End of variables declaration//GEN-END:variables
