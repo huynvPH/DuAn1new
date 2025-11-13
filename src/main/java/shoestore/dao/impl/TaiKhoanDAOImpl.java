@@ -14,7 +14,7 @@ import java.sql.SQLException;
 public class TaiKhoanDAOImpl implements TaiKhoanDAO {
 
     private static final String SELECT_BY_USERNAME =
-            "SELECT tk.IdTaiKhoan, tk.TenDangNhap, tk.MatKhau, ISNULL(tk.QuyenHan, 1) AS QuyenHan, "
+            "SELECT tk.IdTaiKhoan, tk.TenDangNhap, tk.MatKhau, ISNULL(tk.VaiTro, 1) AS VaiTro, "
                     + "tk.TrangThai AS TrangThaiTaiKhoan, ISNULL(nv.TrangThai, 1) AS TrangThaiNhanVien "
                     + "FROM TaiKhoan tk JOIN NhanVien nv ON tk.IdNhanVien = nv.IdNhanVien "
                     + "WHERE tk.TenDangNhap = ?"; // Giải thích: câu SQL lấy đủ thông tin cần thiết trong một lần truy vấn.
@@ -30,7 +30,7 @@ public class TaiKhoanDAOImpl implements TaiKhoanDAO {
                     taiKhoan.setIdTaiKhoan(rs.getInt("IdTaiKhoan"));
                     taiKhoan.setTenDangNhap(rs.getString("TenDangNhap"));
                     taiKhoan.setMatKhau(rs.getString("MatKhau"));
-                    taiKhoan.setQuyenHan(rs.getInt("QuyenHan"));
+                    taiKhoan.setVaiTro(rs.getInt("VaiTro"));
                     taiKhoan.setTrangThaiTaiKhoan(rs.getInt("TrangThaiTaiKhoan"));
                     taiKhoan.setTrangThaiNhanVien(rs.getInt("TrangThaiNhanVien"));
                     return taiKhoan; // Giải thích: trả về entity đã map để controller so sánh mật khẩu.
