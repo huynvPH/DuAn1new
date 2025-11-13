@@ -6,11 +6,10 @@ package shoestore.entity;
  */
 public class TaiKhoan {
     private int idTaiKhoan; // Mã chính của tài khoản trong bảng TaiKhoan.
+    private int idNhanVien; // Lưu khóa ngoại IdNhanVien để những màn khác biết nhân viên nào đăng nhập.
     private String tenDangNhap; // Tên đăng nhập ứng với cột TenDangNhap.
     private String matKhau; // Mật khẩu đã lưu ở CSDL (chưa mã hóa để dễ học).
-    private int vaiTro; // 0 = quản lí, 1 = nhân viên; đặt tên khớp cột VaiTro trong bảng TaiKhoan.
-    private int trangThaiTaiKhoan; // Dùng để khóa/mở tài khoản (TrangThai bảng TaiKhoan).
-    private int trangThaiNhanVien; // Lưu trạng thái nhân viên liên kết nhằm chặn nhân viên bị khóa.
+    private boolean vaiTro; // VaiTro kiểu BIT: true = quản lý, false = nhân viên theo script người dùng cung cấp.
 
     public int getIdTaiKhoan() {
         return idTaiKhoan; // Giải thích: getter trả về IdTaiKhoan giúp controller dùng sau khi đăng nhập.
@@ -18,6 +17,14 @@ public class TaiKhoan {
 
     public void setIdTaiKhoan(int idTaiKhoan) {
         this.idTaiKhoan = idTaiKhoan; // Giải thích: setter dùng khi ánh xạ dữ liệu từ JDBC ResultSet.
+    }
+
+    public int getIdNhanVien() {
+        return idNhanVien; // Giải thích: getter này giúp truyền IdNhanVien sang những nghiệp vụ cần ghi nhận nhân viên.
+    }
+
+    public void setIdNhanVien(int idNhanVien) {
+        this.idNhanVien = idNhanVien; // Giải thích: setter ánh xạ trực tiếp với cột IdNhanVien trong ResultSet.
     }
 
     public String getTenDangNhap() {
@@ -36,35 +43,19 @@ public class TaiKhoan {
         this.matKhau = matKhau;
     }
 
-    public int getVaiTro() {
-        return vaiTro; // Giải thích: vai trò (VaiTro) xác định phân quyền theo bảng TaiKhoan.
+    public boolean isVaiTro() {
+        return vaiTro; // Giải thích: BIT trong SQL Server được ánh xạ sang boolean để code dễ đọc.
     }
 
-    public void setVaiTro(int vaiTro) {
-        this.vaiTro = vaiTro; // Giải thích: setter dùng khi ánh xạ ResultSet trả về cột VaiTro.
-    }
-
-    public int getTrangThaiTaiKhoan() {
-        return trangThaiTaiKhoan;
-    }
-
-    public void setTrangThaiTaiKhoan(int trangThaiTaiKhoan) {
-        this.trangThaiTaiKhoan = trangThaiTaiKhoan;
-    }
-
-    public int getTrangThaiNhanVien() {
-        return trangThaiNhanVien;
-    }
-
-    public void setTrangThaiNhanVien(int trangThaiNhanVien) {
-        this.trangThaiNhanVien = trangThaiNhanVien;
+    public void setVaiTro(boolean vaiTro) {
+        this.vaiTro = vaiTro; // Giải thích: JDBC tự chuyển 0/1 sang false/true giúp sinh viên đỡ phải ép kiểu.
     }
 
     public boolean isManager() {
-        return vaiTro == 0; // Giải thích: điều kiện VaiTro == 0 biểu thị tài khoản quản lí.
+        return vaiTro; // Giải thích: theo script mới, VaiTro = 1 (true) nghĩa là quản lý.
     }
 
     public boolean isStaff() {
-        return vaiTro == 1; // Giải thích: VaiTro == 1 tương ứng nhân viên bán hàng.
+        return !vaiTro; // Giải thích: false tương ứng nhân viên bình thường dễ nhớ hơn cho người mới học.
     }
 }

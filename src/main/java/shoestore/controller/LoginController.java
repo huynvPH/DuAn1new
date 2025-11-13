@@ -21,12 +21,6 @@ public class LoginController {
         if (taiKhoan == null) {
             throw new IllegalArgumentException("Tên đăng nhập không tồn tại");
         }
-        if (taiKhoan.getTrangThaiTaiKhoan() == 0) {
-            throw new IllegalStateException("Tài khoản đã bị khóa");
-        }
-        if (taiKhoan.getTrangThaiNhanVien() == 0) {
-            throw new IllegalStateException("Nhân viên đang bị khóa");
-        }
         if (!taiKhoan.getMatKhau().equals(new String(password))) {
             throw new IllegalArgumentException("Mật khẩu không chính xác");
         }
