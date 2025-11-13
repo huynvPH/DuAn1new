@@ -14,10 +14,8 @@ import java.sql.SQLException;
 public class TaiKhoanDAOImpl implements TaiKhoanDAO {
 
     private static final String SELECT_BY_USERNAME =
-            "SELECT tk.IdTaiKhoan, tk.TenDangNhap, tk.MatKhau, ISNULL(tk.VaiTro, 1) AS VaiTro, "
-                    + "tk.TrangThai AS TrangThaiTaiKhoan, ISNULL(nv.TrangThai, 1) AS TrangThaiNhanVien "
-                    + "FROM TaiKhoan tk JOIN NhanVien nv ON tk.IdNhanVien = nv.IdNhanVien "
-                    + "WHERE tk.TenDangNhap = ?"; // Giải thích: câu SQL lấy đủ thông tin cần thiết trong một lần truy vấn.
+            "SELECT IdTaiKhoan, IdNhanVien, TenDangNhap, MatKhau, VaiTro "
+                    + "FROM TaiKhoan WHERE TenDangNhap = ?"; // Giải thích: script mới chỉ còn các cột này nên truy vấn đơn giản hơn.
 
     @Override
     public TaiKhoan findByUsername(String username) throws SQLException {
@@ -28,11 +26,10 @@ public class TaiKhoanDAOImpl implements TaiKhoanDAO {
                 if (rs.next()) {
                     TaiKhoan taiKhoan = new TaiKhoan();
                     taiKhoan.setIdTaiKhoan(rs.getInt("IdTaiKhoan"));
+                    taiKhoan.setIdNhanVien(rs.getInt("IdNhanVien")); // Giải thích: giúp controller biết nhân viên nào gắn với tài khoản.
                     taiKhoan.setTenDangNhap(rs.getString("TenDangNhap"));
                     taiKhoan.setMatKhau(rs.getString("MatKhau"));
-                    taiKhoan.setVaiTro(rs.getInt("VaiTro"));
-                    taiKhoan.setTrangThaiTaiKhoan(rs.getInt("TrangThaiTaiKhoan"));
-                    taiKhoan.setTrangThaiNhanVien(rs.getInt("TrangThaiNhanVien"));
+                    taiKhoan.setVaiTro(rs.getBoolean("VaiTro")); // Giải thích: getBoolean ánh xạ trực tiếp bit 0/1.
                     return taiKhoan; // Giải thích: trả về entity đã map để controller so sánh mật khẩu.
                 }
                 return null; // Giải thích: username không tồn tại → trả null để controller hiển thị lỗi.
