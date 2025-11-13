@@ -1,0 +1,16 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package test.entity;
+
+/**
+ *
+ * @author DINH SANG
+ */
+public class TaiKhoan {
+    private int idTaiKhoan;
+    private String tenDangNhap;
+    private String matKhau;
+    private boolean vaiTro;
+}
