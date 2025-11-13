@@ -8,7 +8,7 @@ public class TaiKhoan {
     private int idTaiKhoan; // Mã chính của tài khoản trong bảng TaiKhoan.
     private String tenDangNhap; // Tên đăng nhập ứng với cột TenDangNhap.
     private String matKhau; // Mật khẩu đã lưu ở CSDL (chưa mã hóa để dễ học).
-    private int quyenHan; // 0 = quản lí, 1 = nhân viên; mapping đúng yêu cầu đề bài.
+    private int vaiTro; // 0 = quản lí, 1 = nhân viên; đặt tên khớp cột VaiTro trong bảng TaiKhoan.
     private int trangThaiTaiKhoan; // Dùng để khóa/mở tài khoản (TrangThai bảng TaiKhoan).
     private int trangThaiNhanVien; // Lưu trạng thái nhân viên liên kết nhằm chặn nhân viên bị khóa.
 
@@ -36,12 +36,12 @@ public class TaiKhoan {
         this.matKhau = matKhau;
     }
 
-    public int getQuyenHan() {
-        return quyenHan;
+    public int getVaiTro() {
+        return vaiTro; // Giải thích: vai trò (VaiTro) xác định phân quyền theo bảng TaiKhoan.
     }
 
-    public void setQuyenHan(int quyenHan) {
-        this.quyenHan = quyenHan;
+    public void setVaiTro(int vaiTro) {
+        this.vaiTro = vaiTro; // Giải thích: setter dùng khi ánh xạ ResultSet trả về cột VaiTro.
     }
 
     public int getTrangThaiTaiKhoan() {
@@ -61,10 +61,10 @@ public class TaiKhoan {
     }
 
     public boolean isManager() {
-        return quyenHan == 0; // Giải thích: điều kiện quyenHan == 0 biểu thị tài khoản quản lí.
+        return vaiTro == 0; // Giải thích: điều kiện VaiTro == 0 biểu thị tài khoản quản lí.
     }
 
     public boolean isStaff() {
-        return quyenHan == 1; // Giải thích: quyenHan == 1 tương ứng nhân viên bán hàng.
+        return vaiTro == 1; // Giải thích: VaiTro == 1 tương ứng nhân viên bán hàng.
     }
 }
