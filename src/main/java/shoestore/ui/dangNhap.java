@@ -101,12 +101,12 @@ public class dangNhap extends javax.swing.JFrame {
         lblBrand.setFont(new java.awt.Font("Segoe UI", 1, 26)); // NOI18N
         lblBrand.setForeground(new java.awt.Color(255, 255, 255));
         lblBrand.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lblBrand.setText("SHOES STORE");
+        lblBrand.setText("");
 
         lblSlogan.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         lblSlogan.setForeground(new java.awt.Color(233, 244, 255));
         lblSlogan.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lblSlogan.setText("Giao diện đăng nhập chuẩn hóa giúp thao tác nhanh hơn");
+        lblSlogan.setText("");
         lblSlogan.setVerticalAlignment(javax.swing.SwingConstants.TOP);
         lblSlogan.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         lblSlogan.setMaximumSize(new java.awt.Dimension(250, 60));

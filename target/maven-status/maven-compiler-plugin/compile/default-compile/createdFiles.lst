@@ -1,8 +1,9 @@
 shoestore\dao\TaiKhoanDAO.class
 shoestore\dao\impl\TaiKhoanDAOImpl.class
-shoestore\helper\AuthHelper.class
+shoestore\until\AuthHelper.class
+shoestore\until\XQuery.class
+shoestore\ui\dangNhap.class
+shoestore\until\MessageHelper.class
+shoestore\until\XJdbc.class
 shoestore\controller\LoginController.class
 shoestore\entity\TaiKhoan.class
-shoestore\helper\DatabaseHelper.class
-shoestore\helper\MessageHelper.class
-shoestore\ui\LoginFrame.class
