@@ -2,8 +2,8 @@ package shoestore.dao.impl;
 
 import shoestore.dao.TaiKhoanDAO;
 import shoestore.entity.TaiKhoan;
-import shoestore.helper.DatabaseHelper;
-
+import shoestore.until.XJdbc;
+import shoestore.until.XQuery;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -22,7 +22,7 @@ public class TaiKhoanDAOImpl implements TaiKhoanDAO {
 
     @Override
     public TaiKhoan findByUsername(String username) throws SQLException {
-        try (Connection connection = DatabaseHelper.getConnection();
+        try (Connection connection = XQuery.getBeanList(beanClass, username, values);
              PreparedStatement statement = connection.prepareStatement(SELECT_BY_USERNAME)) {
             statement.setString(1, username); // Giải thích: dùng PreparedStatement để chống SQL Injection.
             try (ResultSet rs = statement.executeQuery()) {
