@@ -44,18 +44,18 @@ public class TaiKhoan {
     }
 
     public boolean isVaiTro() {
-        return vaiTro; // Giải thích: BIT trong SQL Server được ánh xạ sang boolean để code dễ đọc.
+        return vaiTro; 
     }
 
     public void setVaiTro(boolean vaiTro) {
-        this.vaiTro = vaiTro; // Giải thích: JDBC tự chuyển 0/1 sang false/true giúp sinh viên đỡ phải ép kiểu.
+        this.vaiTro = vaiTro; 
     }
 
     public boolean isManager() {
-        return vaiTro; // Giải thích: theo script mới, VaiTro = 1 (true) nghĩa là quản lý.
+        return vaiTro; 
     }
 
     public boolean isStaff() {
-        return !vaiTro; // Giải thích: false tương ứng nhân viên bình thường dễ nhớ hơn cho người mới học.
+        return !vaiTro; 
     }
 }

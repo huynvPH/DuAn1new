@@ -1,15 +1,11 @@
 package shoestore.entity;
-
-/**
- * Thực thể ánh xạ bảng NhanVien theo đúng cấu trúc CSDL GIAYTHETHAO.
- */
 public class NhanVien {
-    private int idNhanVien; // Giải thích: khóa chính IdNhanVien để biết nhân viên nào đang thao tác.
-    private String hoTen; // Giải thích: cột HoTen lưu tên nhân viên hiển thị ngoài giao diện.
-    private Integer tuoi; // Giải thích: dùng wrapper Integer để tiện xử lý giá trị null trong DB.
-    private boolean gioiTinh; // Giải thích: BIT trong SQL Server tương ứng boolean (true = Nam, false = Nữ).
-    private String soDienThoai; // Giải thích: cột SoDienThoai phục vụ tìm kiếm & đăng nhập.
-    private String email; // Giải thích: dùng để liên lạc, có thể null.
+    private int idNhanVien; 
+    private String hoTen; 
+    private Integer tuoi; 
+    private boolean gioiTinh; 
+    private String soDienThoai; 
+    private String email; 
 
     public int getIdNhanVien() {
         return idNhanVien;
