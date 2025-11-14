@@ -28,6 +28,10 @@ public class NhanVienController {
         return nhanVienDAO.searchByKeyword(keyword.trim());
     }
 
+    public NhanVien getEmployeeById(int id) throws SQLException {
+        return nhanVienDAO.findById(id); // Giải thích: hỗ trợ lấy thông tin nhân viên dựa trên Id từ tài khoản đăng nhập.
+    }
+
     public void addEmployee(String hoTen, String tuoiText, Boolean gioiTinh, String soDienThoai, String email) throws SQLException {
         NhanVien nhanVien = buildEntity(null, hoTen, tuoiText, gioiTinh, soDienThoai, email);
         nhanVienDAO.insert(nhanVien);

@@ -2,6 +2,8 @@
 package shoestore.ui;
 
 import shoestore.controller.NhanVienController;
+import shoestore.entity.TaiKhoan;
+import shoestore.until.AuthHelper;
 import shoestore.until.MessageHelper;
 
 import javax.swing.JOptionPane;
@@ -28,11 +30,27 @@ public class NhanVien extends javax.swing.JFrame {
     private void initCustomComponents() {
         setLocationRelativeTo(null); // Giải thích: hiển thị form tại giữa màn hình cho dễ thao tác.
         configureTable();
+        configurePersonalTab();
         loadAllEmployees();
+        loadLoggedInEmployeeInfo();
         btTimKiem.addActionListener(evt -> handleSearchEmployee());
         txtTimKiem.addActionListener(evt -> handleSearchEmployee());
         jButton2.addActionListener(evt -> handleUpdateEmployee());
         jButton3.addActionListener(evt -> handleDeleteEmployee());
+    }
+
+    private void configurePersonalTab() {
+        jLabel10.setText("Mã nhân viên:"); // Giải thích: tái sử dụng ô tìm kiếm cũ thành ô hiển thị mã nhân viên.
+        jLabel11.setText("Thông tin nhân viên đang đăng nhập");
+        btSua.setText("Làm mới");
+        btSua.addActionListener(evt -> loadLoggedInEmployeeInfo()); // Giải thích: cho phép cập nhật lại thông tin khi đổi tài khoản.
+        txtTimKiem1.setEditable(false);
+        txtTen1.setEditable(false);
+        txtTuoi1.setEditable(false);
+        txtSDT1.setEditable(false);
+        txtEmail1.setEditable(false);
+        rdoNam1.setEnabled(false);
+        rdoNu1.setEnabled(false);
     }
 
     private void configureTable() {
@@ -105,6 +123,59 @@ public class NhanVien extends javax.swing.JFrame {
         txtTimKiem.setText("");
         selectedNhanVienId = null;
         jTable1.clearSelection();
+    }
+
+    private void clearPersonalInfoFields() {
+        txtTimKiem1.setText("");
+        txtTen1.setText("");
+        txtTuoi1.setText("");
+        txtSDT1.setText("");
+        txtEmail1.setText("");
+        rdoNam1.setSelected(false);
+        rdoNu1.setSelected(false);
+    }
+
+    private void loadLoggedInEmployeeInfo() {
+        if (!AuthHelper.isLoggedIn()) {
+            jLabel11.setText("Nhân viên: Chưa đăng nhập"); // Giải thích: báo cho sinh viên biết cần đăng nhập trước.
+            clearPersonalInfoFields();
+            return;
+        }
+        TaiKhoan currentUser = AuthHelper.getCurrentUser();
+        try {
+            shoestore.entity.NhanVien nhanVien = nhanVienController.getEmployeeById(currentUser.getIdNhanVien());
+            if (nhanVien == null) {
+                MessageHelper.showError(this, "Không tìm thấy thông tin nhân viên cho tài khoản hiện tại");
+                clearPersonalInfoFields();
+                return;
+            }
+            fillLoggedInEmployee(nhanVien);
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Không thể tải thông tin nhân viên đang đăng nhập", ex);
+            MessageHelper.showError(this, "Không thể kết nối CSDL GIAYTHETHAO để lấy thông tin nhân viên đang đăng nhập");
+            clearPersonalInfoFields();
+        }
+    }
+
+    private void fillLoggedInEmployee(shoestore.entity.NhanVien nhanVien) {
+        txtTimKiem1.setText(String.valueOf(nhanVien.getIdNhanVien()));
+        txtTen1.setText(nhanVien.getHoTen());
+        txtTuoi1.setText(nhanVien.getTuoi() == null ? "" : String.valueOf(nhanVien.getTuoi()));
+        txtSDT1.setText(nhanVien.getSoDienThoai());
+        txtEmail1.setText(nhanVien.getEmail() == null ? "" : nhanVien.getEmail());
+        if (nhanVien.isGioiTinh()) {
+            rdoNam1.setSelected(true);
+            rdoNu1.setSelected(false);
+        } else {
+            rdoNam1.setSelected(false);
+            rdoNu1.setSelected(true);
+        }
+        jLabel11.setText("Nhân viên: " + nhanVien.getHoTen()); // Giải thích: headline thể hiện rõ ai đang đăng nhập.
+    }
+
+    public void showPersonalTab() {
+        jTabbedPane1.setSelectedIndex(0); // Giải thích: đảm bảo vừa đăng nhập sẽ mở đúng tab thông tin cá nhân.
+        loadLoggedInEmployeeInfo();
     }
 
     private Boolean getSelectedGender() {
