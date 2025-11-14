@@ -195,6 +195,15 @@ public class NhanVien extends javax.swing.JFrame {
         loadLoggedInEmployeeInfo();
     }
 
+    public void showManagementTab() {
+        if (AuthHelper.isManager()) {
+            jTabbedPane1.setSelectedIndex(1); // Giải thích: chuyển sang tab quản lí khi tài khoản có quyền.
+            loadLoggedInEmployeeInfo(); // Giải thích: refresh lại thông tin cá nhân/phân quyền ngay khi hiển thị tab.
+        } else {
+            showPersonalTab(); // Giải thích: nếu không đủ quyền thì quay về tab cá nhân để tránh lỗi giao diện.
+        }
+    }
+
     private void updateManagementTabAccess() {
         boolean canManage = AuthHelper.isManager(); // Giải thích: chỉ tài khoản có quyền quản lý mới được phép truy cập tab 2.
         jTabbedPane1.setEnabledAt(1, canManage); // Giải thích: disable toàn bộ tab "Quản lí" đối với nhân viên thường.

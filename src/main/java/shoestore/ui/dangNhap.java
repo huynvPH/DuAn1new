@@ -1,6 +1,7 @@
 package shoestore.ui;
 
 import shoestore.controller.LoginController;
+import shoestore.until.AuthHelper;
 import shoestore.until.MessageHelper;
 
 import javax.swing.GroupLayout;
@@ -51,7 +52,11 @@ public class dangNhap extends javax.swing.JFrame {
             loginController.login(username, password); // Giải thích: ủy quyền xác thực cho controller.
             MessageHelper.showInfo(this, "Đăng nhập thành công. Chúc bạn làm việc hiệu quả!");
             NhanVien mainFrame = new NhanVien();
-            mainFrame.showPersonalTab(); // Giải thích: đảm bảo mở tab Nhân viên với dữ liệu tài khoản vừa đăng nhập.
+            if (AuthHelper.isManager()) {
+                mainFrame.showManagementTab(); // Giải thích: quản lý được chuyển thẳng vào tab quản lí nhân viên.
+            } else {
+                mainFrame.showPersonalTab(); // Giải thích: nhân viên thường vẫn về tab thông tin cá nhân.
+            }
             mainFrame.setVisible(true); // Giải thích: hiển thị ngay giao diện quản lý nhân viên.
             dispose(); // Giải thích: đóng màn hình đăng nhập sau khi đã mở form chính.
         } catch (IllegalArgumentException | IllegalStateException ex) {
