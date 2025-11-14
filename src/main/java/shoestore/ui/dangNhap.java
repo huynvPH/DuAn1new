@@ -50,7 +50,10 @@ public class dangNhap extends javax.swing.JFrame {
         try {
             loginController.login(username, password); // Giải thích: ủy quyền xác thực cho controller.
             MessageHelper.showInfo(this, "Đăng nhập thành công. Chúc bạn làm việc hiệu quả!");
-            dispose(); // Giải thích: đóng màn hình đăng nhập sau khi thành công, chuẩn bị mở màn hình chính.
+            NhanVien mainFrame = new NhanVien();
+            mainFrame.showPersonalTab(); // Giải thích: đảm bảo mở tab Nhân viên với dữ liệu tài khoản vừa đăng nhập.
+            mainFrame.setVisible(true); // Giải thích: hiển thị ngay giao diện quản lý nhân viên.
+            dispose(); // Giải thích: đóng màn hình đăng nhập sau khi đã mở form chính.
         } catch (IllegalArgumentException | IllegalStateException ex) {
             MessageHelper.showError(this, ex.getMessage()); // Giải thích: hiển thị lỗi nghiệp vụ để người dùng biết cách xử lý.
         } catch (SQLException ex) {
