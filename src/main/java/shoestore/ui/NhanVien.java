@@ -42,15 +42,10 @@ public class NhanVien extends javax.swing.JFrame {
     private void configurePersonalTab() {
         jLabel10.setText("Mã nhân viên:"); // Giải thích: tái sử dụng ô tìm kiếm cũ thành ô hiển thị mã nhân viên.
         jLabel11.setText("Thông tin nhân viên đang đăng nhập");
-        btSua.setText("Làm mới");
-        btSua.addActionListener(evt -> loadLoggedInEmployeeInfo()); // Giải thích: cho phép cập nhật lại thông tin khi đổi tài khoản.
+        btSua.addActionListener(evt -> handleUpdateLoggedInEmployee()); // Giải thích: bấm nút sẽ cập nhật thông tin cá nhân lên CSDL.
         txtTimKiem1.setEditable(false);
-        txtTen1.setEditable(false);
-        txtTuoi1.setEditable(false);
-        txtSDT1.setEditable(false);
-        txtEmail1.setEditable(false);
-        rdoNam1.setEnabled(false);
-        rdoNu1.setEnabled(false);
+        setPersonalFieldsEditable(false); // Giải thích: mặc định khóa ô nhập cho đến khi đăng nhập thành công.
+        btSua.setEnabled(false); // Giải thích: tránh thao tác nhầm khi chưa có tài khoản đăng nhập.
     }
 
     private void configureTable() {
@@ -135,10 +130,22 @@ public class NhanVien extends javax.swing.JFrame {
         rdoNu1.setSelected(false);
     }
 
+    private void setPersonalFieldsEditable(boolean editable) {
+        txtTen1.setEditable(editable); // Giải thích: bật/tắt cho phép nhập lại họ tên.
+        txtTuoi1.setEditable(editable); // Giải thích: chỉ khi đăng nhập mới cho sửa tuổi.
+        txtSDT1.setEditable(editable); // Giải thích: khóa/mở ô số điện thoại tương ứng.
+        txtEmail1.setEditable(editable); // Giải thích: bảo vệ email khi chưa đăng nhập.
+        rdoNam1.setEnabled(editable); // Giải thích: khóa radio Nam khi không cần tương tác.
+        rdoNu1.setEnabled(editable); // Giải thích: tương tự với radio Nữ.
+    }
+
     private void loadLoggedInEmployeeInfo() {
         if (!AuthHelper.isLoggedIn()) {
             jLabel11.setText("Nhân viên: Chưa đăng nhập"); // Giải thích: báo cho sinh viên biết cần đăng nhập trước.
             clearPersonalInfoFields();
+            setPersonalFieldsEditable(false); // Giải thích: không cho nhập liệu khi chưa xác định nhân viên.
+            btSua.setEnabled(false); // Giải thích: tránh bấm nhầm nút Sửa khi chưa đăng nhập.
+            updateManagementTabAccess(); // Giải thích: nhân viên chưa đăng nhập cũng không được truy cập tab quản lí.
             return;
         }
         TaiKhoan currentUser = AuthHelper.getCurrentUser();
@@ -147,14 +154,24 @@ public class NhanVien extends javax.swing.JFrame {
             if (nhanVien == null) {
                 MessageHelper.showError(this, "Không tìm thấy thông tin nhân viên cho tài khoản hiện tại");
                 clearPersonalInfoFields();
+                setPersonalFieldsEditable(false); // Giải thích: giữ an toàn dữ liệu khi không ánh xạ được nhân viên.
+                btSua.setEnabled(false); // Giải thích: khóa nút khi không có dữ liệu để sửa.
+                updateManagementTabAccess();
                 return;
             }
             fillLoggedInEmployee(nhanVien);
+            setPersonalFieldsEditable(true); // Giải thích: sau khi load thành công thì cho phép chỉnh sửa các ô dữ liệu.
+            btSua.setEnabled(true); // Giải thích: bật nút Sửa để nhân viên lưu thay đổi.
         } catch (SQLException ex) {
             logger.log(Level.SEVERE, "Không thể tải thông tin nhân viên đang đăng nhập", ex);
             MessageHelper.showError(this, "Không thể kết nối CSDL GIAYTHETHAO để lấy thông tin nhân viên đang đăng nhập");
             clearPersonalInfoFields();
+            setPersonalFieldsEditable(false);
+            btSua.setEnabled(false);
+            updateManagementTabAccess();
+            return;
         }
+        updateManagementTabAccess();
     }
 
     private void fillLoggedInEmployee(shoestore.entity.NhanVien nhanVien) {
@@ -178,6 +195,14 @@ public class NhanVien extends javax.swing.JFrame {
         loadLoggedInEmployeeInfo();
     }
 
+    private void updateManagementTabAccess() {
+        boolean canManage = AuthHelper.isManager(); // Giải thích: chỉ tài khoản có quyền quản lý mới được phép truy cập tab 2.
+        jTabbedPane1.setEnabledAt(1, canManage); // Giải thích: disable toàn bộ tab "Quản lí" đối với nhân viên thường.
+        if (!canManage) {
+            jTabbedPane1.setSelectedIndex(0); // Giải thích: tự động đưa người dùng về tab cá nhân khi không đủ quyền.
+        }
+    }
+
     private Boolean getSelectedGender() {
         if (rdoNam.isSelected()) {
             return Boolean.TRUE;
@@ -186,6 +211,16 @@ public class NhanVien extends javax.swing.JFrame {
             return Boolean.FALSE;
         }
         return null; // Giải thích: trả về null khi chưa chọn, controller sẽ báo lỗi giúp sinh viên biết cần tick ô.
+    }
+
+    private Boolean getPersonalGenderSelection() {
+        if (rdoNam1.isSelected()) {
+            return Boolean.TRUE; // Giải thích: true ứng với giới tính Nam khi nhân viên tự cập nhật.
+        }
+        if (rdoNu1.isSelected()) {
+            return Boolean.FALSE; // Giải thích: false ứng với giới tính Nữ.
+        }
+        return null; // Giải thích: null để controller hiển thị thông báo chọn giới tính khi cần.
     }
 
     private void handleAddEmployee() {
@@ -227,6 +262,30 @@ public class NhanVien extends javax.swing.JFrame {
         } catch (SQLException ex) {
             logger.log(Level.SEVERE, "Lỗi cập nhật nhân viên", ex);
             MessageHelper.showError(this, "Không thể cập nhật nhân viên trong CSDL GIAYTHETHAO");
+        }
+    }
+
+    private void handleUpdateLoggedInEmployee() {
+        if (!AuthHelper.isLoggedIn()) {
+            MessageHelper.showError(this, "Vui lòng đăng nhập trước khi sửa thông tin cá nhân");
+            return;
+        }
+        TaiKhoan currentUser = AuthHelper.getCurrentUser();
+        try {
+            nhanVienController.updateEmployee(
+                    currentUser.getIdNhanVien(),
+                    txtTen1.getText(),
+                    txtTuoi1.getText(),
+                    getPersonalGenderSelection(),
+                    txtSDT1.getText(),
+                    txtEmail1.getText());
+            MessageHelper.showInfo(this, "Đã cập nhật thông tin cá nhân");
+            loadLoggedInEmployeeInfo();
+        } catch (IllegalArgumentException ex) {
+            MessageHelper.showError(this, ex.getMessage());
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Lỗi cập nhật thông tin nhân viên đang đăng nhập", ex);
+            MessageHelper.showError(this, "Không thể cập nhật thông tin cá nhân trong CSDL GIAYTHETHAO");
         }
     }
 
