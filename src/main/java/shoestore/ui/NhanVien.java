@@ -24,6 +24,7 @@ public class NhanVien extends javax.swing.JFrame {
     private DefaultTableModel tableModel;
     private List<shoestore.entity.NhanVien> displayedEmployees = new ArrayList<>();
     private Integer selectedNhanVienId; // Giải thích: lưu Id nhân viên đang chọn để thao tác sửa/xóa.
+    private Integer selectedTaiKhoanIdQL; // Giải thích: nhớ Id tài khoản của nhân viên được chọn để sửa/xóa cùng lúc.
 
     public NhanVien() {
         initComponents();
@@ -147,6 +148,7 @@ public class NhanVien extends javax.swing.JFrame {
     private void clearManagementAccountFields() {
         txtTaiKhoanQL.setText("");
         txtMatKhauQL.setText("");
+        selectedTaiKhoanIdQL = null; // Giải thích: reset Id tài khoản để tránh cập nhật nhầm người khác.
     }
 
     private void setPersonalFieldsEditable(boolean editable) {
@@ -276,21 +278,36 @@ public class NhanVien extends javax.swing.JFrame {
     }
 
     private void handleAddEmployee() {
+        Integer newEmployeeId = null;
         try {
-            nhanVienController.addEmployee(
+            newEmployeeId = nhanVienController.addEmployee(
                     txtTen.getText(),
                     txtTuoi.getText(),
                     getSelectedGender(),
                     txtSDT.getText(),
                     txtEmail.getText());
-            MessageHelper.showInfo(this, "Thêm nhân viên thành công");
+            boolean accountSaved = saveManagementAccount(newEmployeeId, null); // Giải thích: nếu nhập TK/MK thì tạo luôn tài khoản.
+            if (accountSaved) {
+                MessageHelper.showInfo(this, "Thêm nhân viên và tài khoản thành công");
+            } else {
+                MessageHelper.showInfo(this, "Thêm nhân viên thành công (chưa tạo tài khoản)");
+            }
             loadAllEmployees();
             clearForm();
         } catch (IllegalArgumentException ex) {
+            if (newEmployeeId != null) {
+                rollbackEmployeeInsert(newEmployeeId);
+            }
             MessageHelper.showError(this, ex.getMessage());
         } catch (SQLException ex) {
-            logger.log(Level.SEVERE, "Lỗi thêm nhân viên", ex);
-            MessageHelper.showError(this, "Không thể thêm nhân viên vào CSDL GIAYTHETHAO");
+            if (newEmployeeId != null) {
+                rollbackEmployeeInsert(newEmployeeId);
+                logger.log(Level.SEVERE, "Không thể tạo tài khoản cho nhân viên vừa thêm", ex);
+                MessageHelper.showError(this, "Không thể tạo tài khoản cho nhân viên vừa thêm");
+            } else {
+                logger.log(Level.SEVERE, "Lỗi thêm nhân viên", ex);
+                MessageHelper.showError(this, "Không thể thêm nhân viên vào CSDL GIAYTHETHAO");
+            }
         }
     }
 
@@ -307,7 +324,12 @@ public class NhanVien extends javax.swing.JFrame {
                     getSelectedGender(),
                     txtSDT.getText(),
                     txtEmail.getText());
-            MessageHelper.showInfo(this, "Cập nhật nhân viên thành công");
+            boolean accountSaved = saveManagementAccount(selectedNhanVienId, selectedTaiKhoanIdQL); // Giải thích: cập nhật song song tài khoản nếu có dữ liệu nhập.
+            if (accountSaved) {
+                MessageHelper.showInfo(this, "Đã cập nhật nhân viên và tài khoản");
+            } else {
+                MessageHelper.showInfo(this, "Cập nhật nhân viên thành công");
+            }
             loadAllEmployees();
         } catch (IllegalArgumentException ex) {
             MessageHelper.showError(this, ex.getMessage());
@@ -378,8 +400,14 @@ public class NhanVien extends javax.swing.JFrame {
             return;
         }
         try {
+            boolean hadAccount = selectedTaiKhoanIdQL != null; // Giải thích: ghi nhận trạng thái để thông báo sau khi xóa.
+            deleteAccountForSelectedEmployee();
             nhanVienController.deleteEmployee(selectedNhanVienId);
-            MessageHelper.showInfo(this, "Đã xóa nhân viên");
+            if (hadAccount) {
+                MessageHelper.showInfo(this, "Đã xóa nhân viên và tài khoản đi kèm");
+            } else {
+                MessageHelper.showInfo(this, "Đã xóa nhân viên");
+            }
             loadAllEmployees();
             clearForm();
         } catch (IllegalArgumentException ex) {
@@ -419,8 +447,55 @@ public class NhanVien extends javax.swing.JFrame {
             clearManagementAccountFields();
             return; // Giải thích: nhân viên chưa được cấp tài khoản thì để trống để tránh hiểu nhầm.
         }
+        selectedTaiKhoanIdQL = taiKhoan.getIdTaiKhoan(); // Giải thích: ghi nhận Id để 3 nút Thêm/Sửa/Xóa thao tác đồng bộ.
         txtTaiKhoanQL.setText(taiKhoan.getTenDangNhap());
         txtMatKhauQL.setText(taiKhoan.getMatKhau());
+    }
+
+    private boolean hasManagementAccountInput() {
+        boolean hasUsername = txtTaiKhoanQL.getText() != null && !txtTaiKhoanQL.getText().trim().isEmpty();
+        boolean hasPassword = txtMatKhauQL.getText() != null && !txtMatKhauQL.getText().trim().isEmpty();
+        return hasUsername || hasPassword; // Giải thích: dùng để biết người dùng có nhập tài khoản/mật khẩu hay không.
+    }
+
+    private boolean saveManagementAccount(int employeeId, Integer accountId) throws SQLException {
+        if (!hasManagementAccountInput()) {
+            return false; // Giải thích: người dùng không nhập gì → bỏ qua để chỉ lưu nhân viên.
+        }
+        String username = txtTaiKhoanQL.getText();
+        String passwordText = txtMatKhauQL.getText();
+        if (username == null || username.trim().isEmpty() || passwordText == null || passwordText.trim().isEmpty()) {
+            throw new IllegalArgumentException("Vui lòng nhập đầy đủ tài khoản và mật khẩu");
+        }
+        char[] passwordChars = passwordText.toCharArray();
+        try {
+            if (accountId == null) {
+                taiKhoanController.addAccount(String.valueOf(employeeId), username, passwordChars, false); // Giải thích: mặc định tài khoản mới thuộc vai trò nhân viên.
+            } else {
+                taiKhoanController.updateAccount(accountId, String.valueOf(employeeId), username, passwordChars, false);
+            }
+            if (selectedNhanVienId != null && selectedNhanVienId.equals(employeeId)) {
+                loadAccountForSelectedEmployee(employeeId); // Giải thích: refresh để hiển thị đúng Id tài khoản sau khi lưu.
+            }
+            return true;
+        } finally {
+            Arrays.fill(passwordChars, '\0'); // Giải thích: xóa mật khẩu khỏi bộ nhớ tạm thời.
+        }
+    }
+
+    private void deleteAccountForSelectedEmployee() throws SQLException {
+        if (selectedTaiKhoanIdQL != null) {
+            taiKhoanController.deleteAccount(selectedTaiKhoanIdQL); // Giải thích: xóa tài khoản trước khi xóa nhân viên để tránh lỗi khóa ngoại.
+            selectedTaiKhoanIdQL = null;
+        }
+    }
+
+    private void rollbackEmployeeInsert(int employeeId) {
+        try {
+            nhanVienController.deleteEmployee(employeeId); // Giải thích: đảm bảo khi tạo tài khoản thất bại thì nhân viên vừa thêm cũng bị hủy để dữ liệu đồng nhất.
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Không thể rollback nhân viên sau khi tạo tài khoản thất bại", ex);
+        }
     }
 
     @SuppressWarnings("unchecked")

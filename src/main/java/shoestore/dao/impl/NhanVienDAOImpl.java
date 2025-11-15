@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,11 +63,20 @@ public class NhanVienDAOImpl implements NhanVienDAO {
     }
 
     @Override
-    public void insert(NhanVien nhanVien) throws SQLException {
+    public int insert(NhanVien nhanVien) throws SQLException {
         try (Connection connection = XJdbc.openConnection();
-             PreparedStatement statement = connection.prepareStatement(INSERT)) {
+             PreparedStatement statement = connection.prepareStatement(INSERT, Statement.RETURN_GENERATED_KEYS)) {
             bindCommonParams(statement, nhanVien); // Giải thích: gom logic set tham số chung (trừ Id) giúp code ngắn.
-            statement.executeUpdate();
+            int affectedRows = statement.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("Không thể thêm nhân viên, không có bản ghi nào được chèn");
+            }
+            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    return generatedKeys.getInt(1); // Giải thích: trả về IdNhanVien mới để controller tạo tài khoản ngay sau đó.
+                }
+                throw new SQLException("Không đọc được mã nhân viên vừa thêm");
+            }
         }
     }
 

@@ -32,9 +32,9 @@ public class NhanVienController {
         return nhanVienDAO.findById(id); // Giải thích: hỗ trợ lấy thông tin nhân viên dựa trên Id từ tài khoản đăng nhập.
     }
 
-    public void addEmployee(String hoTen, String tuoiText, Boolean gioiTinh, String soDienThoai, String email) throws SQLException {
+    public int addEmployee(String hoTen, String tuoiText, Boolean gioiTinh, String soDienThoai, String email) throws SQLException {
         NhanVien nhanVien = buildEntity(null, hoTen, tuoiText, gioiTinh, soDienThoai, email);
-        nhanVienDAO.insert(nhanVien);
+        return nhanVienDAO.insert(nhanVien); // Giải thích: trả về Id vừa tạo để form gán tài khoản ngay sau khi thêm.
     }
 
     public void updateEmployee(int id, String hoTen, String tuoiText, Boolean gioiTinh, String soDienThoai, String email) throws SQLException {

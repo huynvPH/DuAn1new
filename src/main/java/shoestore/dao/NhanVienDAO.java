@@ -15,7 +15,7 @@ public interface NhanVienDAO {
 
     NhanVien findById(int id) throws SQLException; // Giải thích: hỗ trợ lấy lại thông tin khi cần đồng bộ giao diện.
 
-    void insert(NhanVien nhanVien) throws SQLException; // Giải thích: thêm nhân viên mới từ form.
+    int insert(NhanVien nhanVien) throws SQLException; // Giải thích: trả về Id giúp đồng bộ tạo tài khoản ngay sau khi thêm.
 
     void update(NhanVien nhanVien) throws SQLException; // Giải thích: cập nhật nhân viên đã chọn.
 
