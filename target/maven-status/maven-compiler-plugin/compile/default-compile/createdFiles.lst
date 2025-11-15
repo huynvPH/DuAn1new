@@ -1,3 +1,4 @@
+shoestore\controller\TaiKhoanController.class
 shoestore\dao\impl\TaiKhoanDAOImpl.class
 shoestore\ui\NhanVien$2.class
 shoestore\until\AuthHelper.class
@@ -7,9 +8,11 @@ shoestore\dao\NhanVienDAO.class
 shoestore\until\XJdbc.class
 shoestore\ui\NhanVien$1.class
 shoestore\dao\TaiKhoanDAO.class
+shoestore\ui\ThemTK.class
 shoestore\controller\NhanVienController.class
 shoestore\entity\NhanVien.class
 shoestore\ui\dangNhap.class
+shoestore\ui\ThemTK$1.class
 shoestore\until\MessageHelper.class
 shoestore\dao\impl\NhanVienDAOImpl.class
 shoestore\controller\LoginController.class

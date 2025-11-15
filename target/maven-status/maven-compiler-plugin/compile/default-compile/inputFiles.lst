@@ -1,5 +1,6 @@
 C:\Users\Asus\Downloads\BanGiayTT\src\main\java\shoestore\controller\LoginController.java
 C:\Users\Asus\Downloads\BanGiayTT\src\main\java\shoestore\controller\NhanVienController.java
+C:\Users\Asus\Downloads\BanGiayTT\src\main\java\shoestore\controller\TaiKhoanController.java
 C:\Users\Asus\Downloads\BanGiayTT\src\main\java\shoestore\dao\impl\NhanVienDAOImpl.java
 C:\Users\Asus\Downloads\BanGiayTT\src\main\java\shoestore\dao\impl\TaiKhoanDAOImpl.java
 C:\Users\Asus\Downloads\BanGiayTT\src\main\java\shoestore\dao\NhanVienDAO.java
@@ -8,6 +9,7 @@ C:\Users\Asus\Downloads\BanGiayTT\src\main\java\shoestore\entity\NhanVien.java
 C:\Users\Asus\Downloads\BanGiayTT\src\main\java\shoestore\entity\TaiKhoan.java
 C:\Users\Asus\Downloads\BanGiayTT\src\main\java\shoestore\ui\dangNhap.java
 C:\Users\Asus\Downloads\BanGiayTT\src\main\java\shoestore\ui\NhanVien.java
+C:\Users\Asus\Downloads\BanGiayTT\src\main\java\shoestore\ui\ThemTK.java
 C:\Users\Asus\Downloads\BanGiayTT\src\main\java\shoestore\until\AuthHelper.java
 C:\Users\Asus\Downloads\BanGiayTT\src\main\java\shoestore\until\MessageHelper.java
 C:\Users\Asus\Downloads\BanGiayTT\src\main\java\shoestore\until\XJdbc.java

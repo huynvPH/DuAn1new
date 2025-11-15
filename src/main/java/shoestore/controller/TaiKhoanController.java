@@ -76,7 +76,7 @@ public class TaiKhoanController {
             throw new IllegalArgumentException("Mật khẩu phải từ 4 ký tự trở lên");
         }
         String normalizedPassword = new String(password);
-        Arrays.fill(password, '\\0'); // Giải thích: xóa mật khẩu khỏi mảng char để hạn chế lộ thông tin trong bộ nhớ.
+//        Arrays.fill(password, '\\0'); // Giải thích: xóa mật khẩu khỏi mảng char để hạn chế lộ thông tin trong bộ nhớ.
 
         TaiKhoan taiKhoan = new TaiKhoan();
         if (id != null) {
