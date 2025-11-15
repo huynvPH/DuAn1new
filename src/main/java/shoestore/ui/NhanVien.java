@@ -2,6 +2,7 @@
 package shoestore.ui;
 
 import shoestore.controller.NhanVienController;
+import shoestore.controller.TaiKhoanController;
 import shoestore.entity.TaiKhoan;
 import shoestore.until.AuthHelper;
 import shoestore.until.MessageHelper;
@@ -11,6 +12,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -18,6 +20,7 @@ public class NhanVien extends javax.swing.JFrame {
 
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(NhanVien.class.getName());
     private final NhanVienController nhanVienController = new NhanVienController(); // Giải thích: controller gói toàn bộ nghiệp vụ/DAO.
+    private final TaiKhoanController taiKhoanController = new TaiKhoanController(); // Giải thích: controller chuyên xử lý validate + cập nhật tài khoản.
     private DefaultTableModel tableModel;
     private List<shoestore.entity.NhanVien> displayedEmployees = new ArrayList<>();
     private Integer selectedNhanVienId; // Giải thích: lưu Id nhân viên đang chọn để thao tác sửa/xóa.
@@ -46,6 +49,8 @@ public class NhanVien extends javax.swing.JFrame {
         txtTimKiem1.setEditable(false);
         setPersonalFieldsEditable(false); // Giải thích: mặc định khóa ô nhập cho đến khi đăng nhập thành công.
         btSua.setEnabled(false); // Giải thích: tránh thao tác nhầm khi chưa có tài khoản đăng nhập.
+        BtSuaTK.addActionListener(evt -> handleUpdateAccount()); // Giải thích: gom sự kiện nút sửa tài khoản để dễ tái sử dụng logic xử lý.
+        setAccountFieldsEditable(false); // Giải thích: khóa các trường tài khoản cho đến khi xác định người đăng nhập.
     }
 
     private void configureTable() {
@@ -130,6 +135,11 @@ public class NhanVien extends javax.swing.JFrame {
         rdoNu1.setSelected(false);
     }
 
+    private void clearAccountFields() {
+        txtTaiKhoan.setText("");
+        txtMatKhau.setText("");
+    }
+
     private void setPersonalFieldsEditable(boolean editable) {
         txtTen1.setEditable(editable); // Giải thích: bật/tắt cho phép nhập lại họ tên.
         txtTuoi1.setEditable(editable); // Giải thích: chỉ khi đăng nhập mới cho sửa tuổi.
@@ -139,16 +149,26 @@ public class NhanVien extends javax.swing.JFrame {
         rdoNu1.setEnabled(editable); // Giải thích: tương tự với radio Nữ.
     }
 
+    private void setAccountFieldsEditable(boolean editable) {
+        txtTaiKhoan.setEditable(editable); // Giải thích: khóa/mở input tên đăng nhập tương ứng trạng thái đăng nhập.
+        txtMatKhau.setEditable(editable); // Giải thích: chỉ cho phép sửa mật khẩu khi đã xác thực.
+        BtSuaTK.setEnabled(editable); // Giải thích: disable nút tránh click khi chưa đăng nhập.
+    }
+
     private void loadLoggedInEmployeeInfo() {
         if (!AuthHelper.isLoggedIn()) {
             jLabel11.setText("Nhân viên: Chưa đăng nhập"); // Giải thích: báo cho sinh viên biết cần đăng nhập trước.
             clearPersonalInfoFields();
             setPersonalFieldsEditable(false); // Giải thích: không cho nhập liệu khi chưa xác định nhân viên.
             btSua.setEnabled(false); // Giải thích: tránh bấm nhầm nút Sửa khi chưa đăng nhập.
+            clearAccountFields();
+            setAccountFieldsEditable(false); // Giải thích: khóa khu vực chỉnh sửa tài khoản khi chưa đăng nhập.
             updateManagementTabAccess(); // Giải thích: nhân viên chưa đăng nhập cũng không được truy cập tab quản lí.
             return;
         }
         TaiKhoan currentUser = AuthHelper.getCurrentUser();
+        fillLoggedInAccount(currentUser); // Giải thích: đồng bộ lại username/mật khẩu lên giao diện.
+        setAccountFieldsEditable(true); // Giải thích: cho phép sửa tài khoản khi đã xác định người đăng nhập.
         try {
             shoestore.entity.NhanVien nhanVien = nhanVienController.getEmployeeById(currentUser.getIdNhanVien());
             if (nhanVien == null) {
@@ -156,6 +176,7 @@ public class NhanVien extends javax.swing.JFrame {
                 clearPersonalInfoFields();
                 setPersonalFieldsEditable(false); // Giải thích: giữ an toàn dữ liệu khi không ánh xạ được nhân viên.
                 btSua.setEnabled(false); // Giải thích: khóa nút khi không có dữ liệu để sửa.
+                setAccountFieldsEditable(false); // Giải thích: tránh sửa tài khoản khi dữ liệu nhân viên bị lỗi đồng bộ.
                 updateManagementTabAccess();
                 return;
             }
@@ -168,6 +189,8 @@ public class NhanVien extends javax.swing.JFrame {
             clearPersonalInfoFields();
             setPersonalFieldsEditable(false);
             btSua.setEnabled(false);
+            clearAccountFields();
+            setAccountFieldsEditable(false);
             updateManagementTabAccess();
             return;
         }
@@ -190,6 +213,15 @@ public class NhanVien extends javax.swing.JFrame {
             rdoNu1.setSelected(true);
         }
         jLabel11.setText("Nhân viên: " + nhanVien.getHoTen()); // Giải thích: headline thể hiện rõ ai đang đăng nhập.
+    }
+
+    private void fillLoggedInAccount(TaiKhoan taiKhoan) {
+        if (taiKhoan == null) {
+            clearAccountFields();
+            return; // Giải thích: không có dữ liệu thì xóa trắng để tránh nhầm lẫn.
+        }
+        txtTaiKhoan.setText(taiKhoan.getTenDangNhap());
+        txtMatKhau.setText(taiKhoan.getMatKhau());
     }
 
     public void showPersonalTab() {
@@ -297,6 +329,33 @@ public class NhanVien extends javax.swing.JFrame {
         } catch (SQLException ex) {
             logger.log(Level.SEVERE, "Lỗi cập nhật thông tin nhân viên đang đăng nhập", ex);
             MessageHelper.showError(this, "Không thể cập nhật thông tin cá nhân trong CSDL GIAYTHETHAO");
+        }
+    }
+
+    private void handleUpdateAccount() {
+        if (!AuthHelper.isLoggedIn()) {
+            MessageHelper.showError(this, "Vui lòng đăng nhập trước khi sửa tài khoản");
+            return; // Giải thích: bảo vệ trường hợp người dùng mở form nhưng chưa đăng nhập.
+        }
+        TaiKhoan currentUser = AuthHelper.getCurrentUser();
+        char[] passwordChars = txtMatKhau.getText().toCharArray(); // Giải thích: chuyển String sang mảng char cho controller xử lý.
+        try {
+            taiKhoanController.updateAccount(
+                    currentUser.getIdTaiKhoan(),
+                    txtTimKiem1.getText(),
+                    txtTaiKhoan.getText(),
+                    passwordChars,
+                    currentUser.isVaiTro());
+            currentUser.setTenDangNhap(txtTaiKhoan.getText().trim()); // Giải thích: cập nhật lại cache đăng nhập để đồng bộ giao diện.
+            currentUser.setMatKhau(txtMatKhau.getText());
+            MessageHelper.showInfo(this, "Đã cập nhật tài khoản đăng nhập");
+        } catch (IllegalArgumentException ex) {
+            MessageHelper.showError(this, ex.getMessage());
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Lỗi cập nhật tài khoản", ex);
+            MessageHelper.showError(this, "Không thể cập nhật tài khoản trên CSDL GIAYTHETHAO");
+        } finally {
+            Arrays.fill(passwordChars, '\0'); // Giải thích: xóa mật khẩu khỏi bộ nhớ sau khi xử lý.
         }
     }
 
