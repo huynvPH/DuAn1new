@@ -25,6 +25,7 @@ public class TaiKhoanDAOImpl implements TaiKhoanDAO {
     private static final String DELETE = "DELETE FROM TaiKhoan WHERE IdTaiKhoan = ?";
     private static final String CHECK_USERNAME = "SELECT COUNT(1) FROM TaiKhoan WHERE TenDangNhap = ?";
     private static final String CHECK_USERNAME_EXCLUDE_ID = "SELECT COUNT(1) FROM TaiKhoan WHERE TenDangNhap = ? AND IdTaiKhoan <> ?";
+    private static final String SELECT_BY_EMPLOYEE = BASE_SELECT + " WHERE IdNhanVien = ?"; // Giải thích: phục vụ thao tác bấm bảng nhân viên để lấy tài khoản.
 
     @Override
     public TaiKhoan findByUsername(String username) throws SQLException {
@@ -72,6 +73,20 @@ public class TaiKhoanDAOImpl implements TaiKhoanDAO {
                     return mapRow(rs);
                 }
                 return null;
+            }
+        }
+    }
+
+    @Override
+    public TaiKhoan findByEmployeeId(int idNhanVien) throws SQLException {
+        try (Connection connection = XJdbc.openConnection();
+             PreparedStatement statement = connection.prepareStatement(SELECT_BY_EMPLOYEE)) {
+            statement.setInt(1, idNhanVien); // Giải thích: truyền IdNhanVien để lọc đúng bản ghi tương ứng trong bảng TaiKhoan.
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) {
+                    return mapRow(rs); // Giải thích: tái sử dụng mapRow để tránh trùng lặp khi ánh xạ dữ liệu.
+                }
+                return null; // Giải thích: trả null nếu nhân viên chưa được cấp tài khoản để giao diện xóa trắng các ô.
             }
         }
     }
