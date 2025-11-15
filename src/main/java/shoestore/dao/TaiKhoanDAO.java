@@ -17,6 +17,8 @@ public interface TaiKhoanDAO {
 
     TaiKhoan findById(int id) throws SQLException; // Giải thích: lấy chi tiết tài khoản đang chọn trong bảng.
 
+    TaiKhoan findByEmployeeId(int idNhanVien) throws SQLException; // Giải thích: phục vụ việc bấm chọn nhân viên thì tự động đổ tài khoản.
+
     void insert(TaiKhoan taiKhoan) throws SQLException; // Giải thích: thêm mới tài khoản dựa trên dữ liệu form ThemTK.
 
     void update(TaiKhoan taiKhoan) throws SQLException; // Giải thích: cập nhật tài khoản khi người dùng bấm Sửa.

@@ -28,6 +28,10 @@ public class TaiKhoanController {
         return taiKhoanDAO.search(keyword.trim());
     }
 
+    public TaiKhoan getAccountByEmployeeId(int idNhanVien) throws SQLException {
+        return taiKhoanDAO.findByEmployeeId(idNhanVien); // Giải thích: phục vụ việc bấm trên bảng nhân viên để tự đổ tài khoản tương ứng.
+    }
+
     public void addAccount(String idNhanVienText, String username, char[] password, boolean isManager) throws SQLException {
         TaiKhoan taiKhoan = buildEntity(null, idNhanVienText, username, password, isManager);
         ensureUniqueUsername(taiKhoan.getTenDangNhap(), null);
