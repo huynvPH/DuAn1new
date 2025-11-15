@@ -37,6 +37,7 @@ public class NhanVien extends javax.swing.JFrame {
         txtTimKiem.addActionListener(evt -> handleSearchEmployee());
         jButton2.addActionListener(evt -> handleUpdateEmployee());
         jButton3.addActionListener(evt -> handleDeleteEmployee());
+        btThemTK.addActionListener(evt -> openAccountModule()); // Giải thích: bấm nút sẽ mở form ThemTK để quản lý tài khoản.
     }
 
     private void configurePersonalTab() {
@@ -172,6 +173,10 @@ public class NhanVien extends javax.swing.JFrame {
             return;
         }
         updateManagementTabAccess();
+    }
+
+    private void openAccountModule() {
+        java.awt.EventQueue.invokeLater(() -> new ThemTK().setVisible(true)); // Giải thích: tạo form mới trên EDT tránh lỗi hiển thị.
     }
 
     private void fillLoggedInEmployee(shoestore.entity.NhanVien nhanVien) {
