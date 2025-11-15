@@ -24,6 +24,7 @@ public class NhanVien extends javax.swing.JFrame {
     private DefaultTableModel tableModel;
     private List<shoestore.entity.NhanVien> displayedEmployees = new ArrayList<>();
     private Integer selectedNhanVienId; // Giải thích: lưu Id nhân viên đang chọn để thao tác sửa/xóa.
+    private TaiKhoan selectedEmployeeAccount; // Giải thích: ghi nhớ tài khoản (nếu có) để biết đang sửa hay tạo mới.
 
     public NhanVien() {
         initComponents();
@@ -75,6 +76,7 @@ public class NhanVien extends javax.swing.JFrame {
             fillTable(displayedEmployees);
             selectedNhanVienId = null;
             jTable1.clearSelection();
+            clearManagementAccountFields(); // Giải thích: khi làm mới bảng thì cũng xóa thông tin tài khoản đang hiển thị để tránh nhầm.
         } catch (SQLException ex) {
             logger.log(Level.SEVERE, "Không thể tải danh sách nhân viên", ex);
             MessageHelper.showError(this, "Không thể kết nối CSDL GIAYTHETHAO để tải nhân viên");
@@ -99,6 +101,7 @@ public class NhanVien extends javax.swing.JFrame {
         int selectedRow = jTable1.getSelectedRow();
         if (selectedRow < 0 || selectedRow >= displayedEmployees.size()) {
             selectedNhanVienId = null;
+            clearManagementAccountFields(); // Giải thích: bỏ chọn bảng thì xóa tài khoản để tránh sửa sai đối tượng.
             return;
         }
         shoestore.entity.NhanVien nhanVien = displayedEmployees.get(selectedRow);
@@ -112,6 +115,7 @@ public class NhanVien extends javax.swing.JFrame {
         } else {
             rdoNu.setSelected(true);
         }
+        loadAccountForSelectedEmployee(nhanVien.getIdNhanVien()); // Giải thích: đồng thời tải tài khoản để các nút thêm/sửa/xóa dùng ngay.
     }
 
     private void clearForm() {
@@ -123,6 +127,7 @@ public class NhanVien extends javax.swing.JFrame {
         txtTimKiem.setText("");
         selectedNhanVienId = null;
         jTable1.clearSelection();
+        clearManagementAccountFields(); // Giải thích: xóa ô tài khoản quản lí khi reset form thêm/sửa.
     }
 
     private void clearPersonalInfoFields() {
@@ -138,6 +143,12 @@ public class NhanVien extends javax.swing.JFrame {
     private void clearAccountFields() {
         txtTaiKhoan.setText("");
         txtMatKhau.setText("");
+    }
+
+    private void clearManagementAccountFields() {
+        txtTaiKhoanQL.setText("");
+        txtMatKhauQL.setText("");
+        selectedEmployeeAccount = null; // Giải thích: reset tài khoản đi kèm khi người dùng bỏ chọn nhân viên.
     }
 
     private void setPersonalFieldsEditable(boolean editable) {
@@ -298,13 +309,16 @@ public class NhanVien extends javax.swing.JFrame {
                     getSelectedGender(),
                     txtSDT.getText(),
                     txtEmail.getText());
-            MessageHelper.showInfo(this, "Cập nhật nhân viên thành công");
+            boolean accountChanged = saveAccountChangesForSelectedEmployee(); // Giải thích: tái sử dụng nút Sửa để cập nhật/tạo tài khoản.
+            MessageHelper.showInfo(this, accountChanged
+                    ? "Đã cập nhật nhân viên và tài khoản"
+                    : "Cập nhật nhân viên thành công");
             loadAllEmployees();
         } catch (IllegalArgumentException ex) {
             MessageHelper.showError(this, ex.getMessage());
         } catch (SQLException ex) {
-            logger.log(Level.SEVERE, "Lỗi cập nhật nhân viên", ex);
-            MessageHelper.showError(this, "Không thể cập nhật nhân viên trong CSDL GIAYTHETHAO");
+            logger.log(Level.SEVERE, "Lỗi cập nhật nhân viên hoặc tài khoản", ex);
+            MessageHelper.showError(this, "Không thể cập nhật dữ liệu nhân viên/tài khoản trong CSDL GIAYTHETHAO");
         }
     }
 
@@ -387,9 +401,59 @@ public class NhanVien extends javax.swing.JFrame {
             fillTable(displayedEmployees);
             selectedNhanVienId = null;
             jTable1.clearSelection();
+            clearManagementAccountFields(); // Giải thích: kết quả tìm kiếm mới cũng cần xóa tài khoản cũ để tránh thao tác nhầm.
         } catch (SQLException ex) {
             logger.log(Level.SEVERE, "Lỗi tìm kiếm nhân viên", ex);
             MessageHelper.showError(this, "Không thể tìm kiếm trên CSDL GIAYTHETHAO");
+        }
+    }
+
+    private void loadAccountForSelectedEmployee(int idNhanVien) {
+        try {
+            TaiKhoan taiKhoan = taiKhoanController.getAccountByEmployeeId(idNhanVien);
+            fillManagementAccountFields(taiKhoan);
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Không thể tải tài khoản của nhân viên", ex);
+            MessageHelper.showError(this, "Không thể tải tài khoản trên CSDL GIAYTHETHAO cho nhân viên đang chọn");
+            clearManagementAccountFields();
+        }
+    }
+
+    private void fillManagementAccountFields(TaiKhoan taiKhoan) {
+        if (taiKhoan == null) {
+            clearManagementAccountFields();
+            return; // Giải thích: nhân viên chưa được cấp tài khoản thì để trống để tránh hiểu nhầm.
+        }
+        selectedEmployeeAccount = taiKhoan; // Giải thích: lưu IdTaiKhoan để biết khi nào gọi update.
+        txtTaiKhoanQL.setText(taiKhoan.getTenDangNhap());
+        txtMatKhauQL.setText(taiKhoan.getMatKhau());
+    }
+
+    private boolean saveAccountChangesForSelectedEmployee() throws SQLException {
+        if (selectedNhanVienId == null) {
+            return false; // Giải thích: không có nhân viên thì không xử lý tài khoản.
+        }
+        String username = txtTaiKhoanQL.getText() == null ? "" : txtTaiKhoanQL.getText().trim();
+        String passwordText = txtMatKhauQL.getText() == null ? "" : txtMatKhauQL.getText();
+        boolean hasAccountInput = !(username.isEmpty() && passwordText.isEmpty());
+        if (!hasAccountInput) {
+            return false; // Giải thích: người dùng chỉ sửa thông tin nhân viên, bỏ qua phần tài khoản.
+        }
+        char[] passwordChars = passwordText.toCharArray();
+        try {
+            if (selectedEmployeeAccount == null) {
+                taiKhoanController.addAccount(String.valueOf(selectedNhanVienId), username, passwordChars, false);
+            } else {
+                taiKhoanController.updateAccount(
+                        selectedEmployeeAccount.getIdTaiKhoan(),
+                        String.valueOf(selectedNhanVienId),
+                        username,
+                        passwordChars,
+                        selectedEmployeeAccount.isVaiTro());
+            }
+            return true; // Giải thích: thông báo cho caller biết đã can thiệp dữ liệu tài khoản.
+        } finally {
+            Arrays.fill(passwordChars, '\0'); // Giải thích: xóa mật khẩu khỏi bộ nhớ đệm tạm.
         }
     }
 
