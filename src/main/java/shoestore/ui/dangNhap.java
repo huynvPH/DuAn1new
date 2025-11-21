@@ -1,12 +1,15 @@
 package shoestore.ui;
 
 import shoestore.controller.LoginController;
+import shoestore.helper.GoogleOAuthHelper;
 import shoestore.until.AuthHelper;
 import shoestore.until.MessageHelper;
 
 import javax.swing.GroupLayout;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -35,6 +38,7 @@ public class dangNhap extends javax.swing.JFrame {
         btDangNhap.addActionListener(evt -> handleLogin()); // Giải thích: bắt sự kiện click nút đăng nhập.
         btnThoat.addActionListener(evt -> dispose()); // Giải thích: người dùng có thể đóng form nhanh chóng.
         chkShowPassword.addActionListener(evt -> togglePasswordVisibility()); // Giải thích: bật/tắt hiển thị mật khẩu.
+        btnGoogle.addActionListener(evt -> handleGoogleLogin()); // Giải thích: thêm lựa chọn đăng nhập bằng Gmail.
     }
 
     private void togglePasswordVisibility() {
@@ -50,15 +54,7 @@ public class dangNhap extends javax.swing.JFrame {
         char[] password = txtPass.getPassword(); // Giải thích: lấy mật khẩu dạng mảng char để dễ xóa khỏi bộ nhớ.
         try {
             loginController.login(username, password); // Giải thích: ủy quyền xác thực cho controller.
-            MessageHelper.showInfo(this, "Đăng nhập thành công. Chúc bạn làm việc hiệu quả!");
-            NhanVien mainFrame = new NhanVien();
-            if (AuthHelper.isManager()) {
-                mainFrame.showManagementTab(); // Giải thích: quản lý được chuyển thẳng vào tab quản lí nhân viên.
-            } else {
-                mainFrame.showPersonalTab(); // Giải thích: nhân viên thường vẫn về tab thông tin cá nhân.
-            }
-            mainFrame.setVisible(true); // Giải thích: hiển thị ngay giao diện quản lý nhân viên.
-            dispose(); // Giải thích: đóng màn hình đăng nhập sau khi đã mở form chính.
+            showMainFrameWithMessage("Đăng nhập thành công. Chúc bạn làm việc hiệu quả!");
         } catch (IllegalArgumentException | IllegalStateException ex) {
             MessageHelper.showError(this, ex.getMessage()); // Giải thích: hiển thị lỗi nghiệp vụ để người dùng biết cách xử lý.
         } catch (SQLException ex) {
@@ -67,6 +63,45 @@ public class dangNhap extends javax.swing.JFrame {
         } finally {
             Arrays.fill(password, '\0'); // Giải thích: xóa mật khẩu khỏi bộ nhớ giúp tăng bảo mật.
         }
+    }
+
+    private void handleGoogleLogin() {
+        setButtonsEnabled(false); // Giải thích: khóa các nút để tránh người dùng bấm nhiều lần khi đang xác thực.
+        new Thread(() -> {
+            try {
+                String gmail = GoogleOAuthHelper.authenticateAndGetEmail(); // Giải thích: chạy OAuth để lấy email Gmail thực tế.
+                loginController.loginWithGoogle(gmail); // Giải thích: tìm tài khoản nội bộ khớp với email vừa xác thực.
+                SwingUtilities.invokeLater(() -> showMainFrameWithMessage("Đăng nhập Gmail thành công với " + gmail));
+            } catch (IllegalArgumentException | IllegalStateException ex) {
+                SwingUtilities.invokeLater(() -> MessageHelper.showError(dangNhap.this, ex.getMessage()));
+            } catch (IOException ex) {
+                logger.log(Level.SEVERE, "Lỗi đăng nhập Gmail", ex);
+                SwingUtilities.invokeLater(() -> MessageHelper.showError(dangNhap.this, "Không thể hoàn tất đăng nhập Gmail. Kiểm tra mạng và cấu hình GOOGLE_CLIENT_ID/SECRET."));
+            } catch (SQLException ex) {
+                logger.log(Level.SEVERE, "Lỗi truy vấn tài khoản Gmail", ex);
+                SwingUtilities.invokeLater(() -> MessageHelper.showError(dangNhap.this, "Không thể tìm tài khoản tương ứng với Gmail trong CSDL."));
+            } finally {
+                SwingUtilities.invokeLater(() -> setButtonsEnabled(true)); // Giải thích: mở lại các nút sau khi kết thúc tiến trình.
+            }
+        }, "google-login-thread").start();
+    }
+
+    private void setButtonsEnabled(boolean enabled) {
+        btDangNhap.setEnabled(enabled); // Giải thích: khóa/mở nút đăng nhập truyền thống.
+        btnThoat.setEnabled(enabled); // Giải thích: tránh đóng form khi quá trình OAuth đang chạy.
+        btnGoogle.setEnabled(enabled); // Giải thích: không cho bấm lặp lại nút Gmail.
+    }
+
+    private void showMainFrameWithMessage(String message) {
+        MessageHelper.showInfo(this, message); // Giải thích: thông báo thành công trước khi chuyển sang màn hình chính.
+        NhanVien mainFrame = new NhanVien();
+        if (AuthHelper.isManager()) {
+            mainFrame.showManagementTab(); // Giải thích: quản lý vào thẳng tab quản lí nhân viên.
+        } else {
+            mainFrame.showPersonalTab(); // Giải thích: nhân viên thường chuyển tới tab thông tin cá nhân.
+        }
+        mainFrame.setVisible(true); // Giải thích: hiển thị giao diện chính ngay lập tức.
+        dispose(); // Giải thích: đóng form đăng nhập để tránh quay lại.
     }
 
     /**
@@ -94,6 +129,8 @@ public class dangNhap extends javax.swing.JFrame {
         btDangNhap = new javax.swing.JButton();
         btnThoat = new javax.swing.JButton();
         lblSupport = new javax.swing.JLabel();
+        lblDivider = new javax.swing.JLabel();
+        btnGoogle = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Shoes Store - Đăng nhập");
@@ -186,6 +223,16 @@ public class dangNhap extends javax.swing.JFrame {
         lblSupport.setForeground(new java.awt.Color(102, 102, 102));
         lblSupport.setText("Liên hệ quản trị viên nếu bạn quên thông tin đăng nhập");
 
+        lblDivider.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
+        lblDivider.setForeground(new java.awt.Color(153, 153, 153));
+        lblDivider.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblDivider.setText("Hoặc tiếp tục bằng Gmail");
+
+        btnGoogle.setBackground(new java.awt.Color(255, 255, 255));
+        btnGoogle.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        btnGoogle.setText("Đăng nhập bằng Gmail");
+        btnGoogle.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 204, 204)));
+
         GroupLayout pnlRightLayout = new GroupLayout(pnlRight);
         pnlRight.setLayout(pnlRightLayout);
         pnlRightLayout.setHorizontalGroup(
@@ -205,7 +252,9 @@ public class dangNhap extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnThoat, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(lblSupport))
+                    .addComponent(lblSupport)
+                    .addComponent(lblDivider, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnGoogle, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         pnlRightLayout.setVerticalGroup(
@@ -232,6 +281,10 @@ public class dangNhap extends javax.swing.JFrame {
                     .addComponent(btnThoat, GroupLayout.PREFERRED_SIZE, 40, GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(lblSupport)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(lblDivider)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnGoogle, GroupLayout.PREFERRED_SIZE, 40, GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 26, Short.MAX_VALUE))
         );
 
@@ -270,9 +323,11 @@ public class dangNhap extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btDangNhap;
+    private javax.swing.JButton btnGoogle;
     private javax.swing.JButton btnThoat;
     private javax.swing.JCheckBox chkShowPassword;
     private javax.swing.JLabel lblBrand;
+    private javax.swing.JLabel lblDivider;
     private javax.swing.JLabel lblPassword;
     private javax.swing.JLabel lblSlogan;
     private javax.swing.JLabel lblSubtitle;

@@ -19,6 +19,8 @@ public interface TaiKhoanDAO {
 
     TaiKhoan findByEmployeeId(int idNhanVien) throws SQLException; // Giải thích: phục vụ việc bấm chọn nhân viên thì tự động đổ tài khoản.
 
+    TaiKhoan findByEmployeeEmail(String email) throws SQLException; // Giải thích: phục vụ đăng nhập Gmail dựa trên email nhân viên.
+
     void insert(TaiKhoan taiKhoan) throws SQLException; // Giải thích: thêm mới tài khoản dựa trên dữ liệu form ThemTK.
 
     void update(TaiKhoan taiKhoan) throws SQLException; // Giải thích: cập nhật tài khoản khi người dùng bấm Sửa.
