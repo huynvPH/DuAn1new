@@ -29,6 +29,16 @@ public class LoginController {
         return taiKhoan;
     }
 
+    public TaiKhoan loginWithGoogle(String gmailAddress) throws SQLException {
+        String normalizedEmail = normalizeGmail(gmailAddress); // Giải thích: chuẩn hóa email để truy vấn chính xác.
+        TaiKhoan taiKhoan = taiKhoanDAO.findByEmployeeEmail(normalizedEmail);
+        if (taiKhoan == null) {
+            throw new IllegalArgumentException("Email Gmail chưa được cấp quyền đăng nhập trong hệ thống");
+        }
+        AuthHelper.login(taiKhoan); // Giải thích: lưu lại tài khoản tìm được từ email để UI mở màn quản lý.
+        return taiKhoan;
+    }
+
     private void validateInput(String username, char[] password) {
         if (username == null || username.trim().isEmpty()) {
             throw new IllegalArgumentException("Vui lòng nhập tên đăng nhập");
@@ -36,5 +46,16 @@ public class LoginController {
         if (password == null || password.length == 0) {
             throw new IllegalArgumentException("Vui lòng nhập mật khẩu");
         }
+    }
+
+    private String normalizeGmail(String gmailAddress) {
+        if (gmailAddress == null || gmailAddress.trim().isEmpty()) {
+            throw new IllegalArgumentException("Không lấy được địa chỉ Gmail sau khi xác thực");
+        }
+        String normalized = gmailAddress.trim().toLowerCase(); // Giải thích: Gmail không phân biệt hoa thường nên chuyển hết về lower-case.
+        if (!normalized.endsWith("@gmail.com")) {
+            throw new IllegalArgumentException("Vui lòng sử dụng tài khoản kết thúc bằng @gmail.com");
+        }
+        return normalized;
     }
 }
